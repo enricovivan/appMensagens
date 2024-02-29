@@ -1,19 +1,36 @@
 import { View, StyleSheet, Pressable, Text, Image, FlatList, TextInput } from "react-native"
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import uuid from 'react-native-uuid'
 
-type MessageProps = {
-    id ?: string
-    message: string
-    date?: string
-    color?: string
-    sender ?: string
-}
+import { MessageProps } from "../../types/MessageProps";
+
+import { useAppSelector, useAppDispatch } from "../../hooks/hooks";
+import { saveMessageDispatch } from "../../data/messages/messageSlice";
 
 export default function Message({navigation}){
 
+
     const [messages, setMessages] = useState<MessageProps[]>([])
+    const [personName, setPersonName] = useState<string>('')
+
+    // chamar o UUID da pessoa a fazer a filtragem
+    const conversas = useAppSelector(state => state.message)
+    const uuidPerson = useAppSelector(state => state.chatUUIDSelector.uuid)
+
+    const dispatch = useAppDispatch()
+
+    // conversa da pessoa específica
+    const conversa = conversas.filter(item => item.personId == uuidPerson)
+
+    useEffect(()=>{
+        
+        setMessages(conversa[0].messages)
+        setPersonName(conversa[0].personName)
+
+    }, [])
+
+    
 
     const [inputMessage, setInputMessage] = useState<string>("")
 
@@ -45,7 +62,7 @@ export default function Message({navigation}){
 
         setMessages([...messages, {
             id: uuid.v4().toString(),
-            message: 'Isso é uma mensagem, caso queira alterar, mude a linha 46!!!',
+            message: 'Isso é uma mensagem, caso queira alterar, mude a função newOtherMessage()!!!',
             sender: 'other',
             date: `${date.getDate()}/${mesFormatado}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`
         }])
@@ -62,9 +79,29 @@ export default function Message({navigation}){
         setMessages([...messages, {
             message: message,
             id: uuid.v4().toString(),
-            date: `${data.getDate()}/${data.getMonth()+1}/${data.getFullYear()} ${data.getHours()}:${data.getMinutes()}`,
+            date: `${data.getDate()}/${mesFormatado}/${data.getFullYear()} ${data.getHours()}:${data.getMinutes()}`,
             sender: 'me'
         }])
+
+        // manda pra store
+        // dispatch(saveMessage({
+        //     personId: uuidPerson,
+        //     message: {
+        //         id: uuid.v4().toString(),
+        //         message: message,
+        //         sender: 'me',
+        //         date: `${data.getDate()}/${mesFormatado}/${data.getFullYear()} ${data.getHours()}:${data.getMinutes()}`,
+        //     }
+        // }))
+        dispatch(saveMessageDispatch({
+            personId: uuidPerson,
+            message: {
+                id: uuid.v4().toString(),
+                sender: 'me',
+                message: message,
+                date: `${data.getDate()}/${mesFormatado}/${data.getFullYear()} ${data.getHours()}:${data.getMinutes()}`,
+            }
+        }))
     }
 
     const MessageItem = ({message, date, color, sender}: MessageProps) => (
@@ -82,6 +119,7 @@ export default function Message({navigation}){
     return (
         <View style={styles.container}>
 
+            {/* Barra superior */}
             <View style={[styles.supBar]}>
                 {/* Botão para voltar */}
                 <Pressable android_ripple={{color: 'black', radius: 30}} style={{padding: 5}} onPress={()=>{navigation.goBack()}}>
@@ -91,8 +129,8 @@ export default function Message({navigation}){
 
                 {/* Nome e telefone do camarada */}
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                    <Image source={require('../../assets/person_icons/p1.jpg')} style={{width: 50, height: 50, borderRadius: 100}}/>
-                    <Text style={{color: 'white', fontSize: 20, textAlign: 'center'}}>Pedro Pimentas</Text>
+                    <Image source={conversa[0].image} style={{width: 50, height: 50, borderRadius: 100}}/>
+                    <Text style={{color: 'white', fontSize: 20, textAlign: 'center'}}>{personName}</Text>
                 </View>
 
                 {/* Menu de opções do camarada + foto do camarada */}

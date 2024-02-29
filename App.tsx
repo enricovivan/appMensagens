@@ -7,7 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Message from './screens/Message/Message';
 import MessageList from './screens/MessageList/MessageList';
 
-import store from './stores/store';
+import {store} from './stores/store';
 import { Provider } from 'react-redux';
 
 const Stack = createNativeStackNavigator();
@@ -20,7 +20,7 @@ export default function App() {
         <SafeAreaView style={{flex: 1}}>
           <Stack.Navigator initialRouteName='Lista de Mensagens'>
             <Stack.Screen name='Contato' component={Message} options={{headerShown: false}}/>
-            <Stack.Screen name='Lista de Mensagens' component={MessageList}/>
+            <Stack.Screen name='Lista de Mensagens' component={MessageList} options={{headerShown: false}}/>
           </Stack.Navigator>
         </SafeAreaView>
       </NavigationContainer>
