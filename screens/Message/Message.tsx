@@ -35,27 +35,6 @@ export default function Message({navigation}){
 
     const [inputMessage, setInputMessage] = useState<string>("")
 
-    const messagesFixed = [
-        {
-            id: 1,
-            sender: 'other',
-            message: 'Olá Camarada, vi que você se tornou um monstro imbatível, espero que possa confirmar minha admiração para com vossa mercê expondo todos os seus crimes à público, para que assim possa ser executado.',
-            date: '28/02/2024'
-        },
-        {
-            id: 2,
-            sender: 'me',
-            message: 'Desgraça',
-            date: '28/02/2024'
-        },
-        {
-            id: 3,
-            sender: 'other',
-            message: 'Noooooossa!!!!',
-            date: '28/02/2024'
-        }
-    ]
-
     const newOtherMessage = () => {
 
         const mensagemPadrao = `Olá, eu sou ${conversa[0].personName}, meu UUID é: "${uuidPerson}", e atualmente essa conversa tem ${conversa[0].messages.length+1} mensagens!!!`
