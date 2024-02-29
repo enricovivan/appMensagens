@@ -1,6 +1,6 @@
-import { View, StyleSheet, Pressable, Text, Image, FlatList, TextInput } from "react-native"
+import { View, StyleSheet, Pressable, Text, Image, FlatList, TextInput, FlatListComponent, FlatListProps } from "react-native"
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import uuid from 'react-native-uuid'
 
 import { MessageProps } from "../../types/MessageProps";
@@ -22,15 +22,16 @@ export default function Message({navigation}){
 
     // conversa da pessoa específica
     const conversa = conversas.filter(item => item.personId == uuidPerson)
+    const refList = React.useRef(null)
 
     useEffect(()=>{
         
         setMessages(conversa[0].messages)
         setPersonName(conversa[0].personName)
 
-    }, [])
+        refList.current.scrollToEnd({animated: true})
 
-    
+    }, [messages])
 
     const [inputMessage, setInputMessage] = useState<string>("")
 
@@ -56,20 +57,37 @@ export default function Message({navigation}){
     ]
 
     const newOtherMessage = () => {
+
+        const mensagemPadrao = `Olá, eu sou ${conversa[0].personName}, meu UUID é: "${uuidPerson}", e atualmente essa conversa tem ${conversa[0].messages.length+1} mensagens!!!`
+
         const date = new Date()
 
         const mesFormatado = date.getMonth()+1 < 10 ? `0${date.getMonth()+1}`:`${date.getMonth()+1}`
 
         setMessages([...messages, {
             id: uuid.v4().toString(),
-            message: 'Isso é uma mensagem, caso queira alterar, mude a função newOtherMessage()!!!',
+            message: mensagemPadrao,
             sender: 'other',
             date: `${date.getDate()}/${mesFormatado}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`
         }])
+
+        // despacha para a store
+        dispatch(saveMessageDispatch({
+            personId: uuidPerson,
+            message: {
+                id: uuid.v4().toString(),
+                sender: 'other',
+                message: mensagemPadrao,
+                date: `${date.getDate()}/${mesFormatado}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}`
+            }
+        }))
     }
 
     const saveMessage = () => {
         const message = inputMessage
+
+        if (message == null || message == undefined || message == '') return
+
         setInputMessage(null)
 
         const data = new Date()
@@ -83,16 +101,6 @@ export default function Message({navigation}){
             sender: 'me'
         }])
 
-        // manda pra store
-        // dispatch(saveMessage({
-        //     personId: uuidPerson,
-        //     message: {
-        //         id: uuid.v4().toString(),
-        //         message: message,
-        //         sender: 'me',
-        //         date: `${data.getDate()}/${mesFormatado}/${data.getFullYear()} ${data.getHours()}:${data.getMinutes()}`,
-        //     }
-        // }))
         dispatch(saveMessageDispatch({
             personId: uuidPerson,
             message: {
@@ -140,7 +148,7 @@ export default function Message({navigation}){
             </View>
 
             {/* Lista de mensagens */}
-            <FlatList style={[styles.messageBox]} data={messages} renderItem={({item}) => <MessageItem color={item.sender == 'other'?'#899fe0':'#686294'} message={item.message} date={item.date} sender={item.sender}/>} keyExtractor={item => item.id}/>
+            <FlatList  onLayout={()=>refList.current.scrollToEnd({animated: true})} ref={refList} style={[styles.messageBox]} data={messages} renderItem={({item}) => <MessageItem color={item.sender == 'other'?'#899fe0':'#686294'} message={item.message} date={item.date} sender={item.sender}/>} keyExtractor={item => item.id} />
 
             {/* Input */}
             <View style={styles.sendMessageBar}>
